@@ -8,8 +8,8 @@ permissions:
 jobs:
   install:
     strategy:
+      php_version: [ '8.3' ]
       matrix:
-        php_version: [ '8.3' ]
         symfony_version: [ '6.4', '7.0' ]
     runs-on: ubuntu-latest
     steps:
