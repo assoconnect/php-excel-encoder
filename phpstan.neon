@@ -2,7 +2,6 @@ parameters:
   paths:
     - %currentWorkingDirectory%/src
     - %currentWorkingDirectory%/tests/
-  checkMissingIterableValueType: false
 
 includes:
   - vendor/assoconnect/php-quality-config/phpstan.extension.neon
