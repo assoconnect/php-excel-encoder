@@ -4,5 +4,5 @@ parameters:
     - %currentWorkingDirectory%/tests/
   checkMissingIterableValueType: false
 
-  includes:
-      - vendor/assoconnect/php-quality-config/phpstan.extension.neon
+includes:
+  - vendor/assoconnect/php-quality-config/phpstan.extension.neon
