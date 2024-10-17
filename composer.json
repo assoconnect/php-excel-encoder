@@ -25,10 +25,10 @@
 		"phpoffice/phpspreadsheet": "^1.16|^2.0",
 		"symfony/serializer": "^6.0|^7.0",
 		"symfony/filesystem": "^6.0|^7.0"
-    },
-    "require-dev": {
+	},
+	"require-dev": {
 		"symfony/test-pack": "^1.0",
-		"assoconnect/php-quality-config": "^1.11"
+		"assoconnect/php-quality-config": "^1.13"
 	},
 	"config": {
 		"allow-plugins": {
