@@ -53,86 +53,94 @@ final class ExcelEncoderTest extends TestCase
     public static function dataDecodingProvider(): array
     {
         return [
-            [__DIR__.'/Resources/encoded.xls', ExcelEncoder::XLS, [
-                'Sheet_0' => [
-                    [
-                        'bool' => 0.0,
-                        'int' => 1,
-                        'float' => 1.618,
-                        'string' => 'Hello',
-                        'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
-                        'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
-                        'array.string' => 'World',
-                        'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
-                        'array.object.timezone' => 'Europe/Berlin',
-                        'array.array.0' => 'again',
+            [
+                __DIR__ . '/Resources/encoded.xls',
+                ExcelEncoder::XLS,
+                [
+                    'Sheet_0' => [
+                        [
+                            'bool' => 0.0,
+                            'int' => 1,
+                            'float' => 1.618,
+                            'string' => 'Hello',
+                            'object.date' => '2000-01-01 13:37:00.000000',
+                            'object.timezone_type' => 3,
+                            'object.timezone' => 'Europe/Berlin',
+                            'array.bool' => 1,
+                            'array.int' => 3,
+                            'array.float' => 3.14,
+                            'array.string' => 'World',
+                            'array.object.date' => '2000-01-01 13:37:00.000000',
+                            'array.object.timezone_type' => 3,
+                            'array.object.timezone' => 'Europe/Berlin',
+                            'array.array.0' => 'again',
+                        ],
+                    ],
+                    'Feuil1' => [
+                        [
+                            'bool' => 0.0,
+                            'int' => 1,
+                            'float' => 1.618,
+                            'string' => 'Hello',
+                            'object.date' => '2000-01-01 13:37:00.000000',
+                            'object.timezone_type' => 3,
+                            'object.timezone' => 'Europe/Berlin',
+                            'array.bool' => 1,
+                            'array.int' => 3,
+                            'array.float' => 3.14,
+                            'array.string' => 'World',
+                            'array.object.date' => '2000-01-01 13:37:00.000000',
+                            'array.object.timezone_type' => 3,
+                            'array.object.timezone' => 'Europe/Berlin',
+                            'array.array.0' => 'again',
+                        ],
                     ],
                 ],
-                'Feuil1' => [
-                    [
-                        'bool' => 0.0,
-                        'int' => 1,
-                        'float' => 1.618,
-                        'string' => 'Hello',
-                        'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
-                        'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
-                        'array.string' => 'World',
-                        'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
-                        'array.object.timezone' => 'Europe/Berlin',
-                        'array.array.0' => 'again',
+            ],
+            [
+                __DIR__ . '/Resources/encoded.xlsx',
+                ExcelEncoder::XLSX,
+                [
+                    'Sheet_0' => [
+                        [
+                            'bool' => 0,
+                            'int' => 1,
+                            'float' => 1.618,
+                            'string' => 'Hello',
+                            'object.date' => '2000-01-01 13:37:00.000000',
+                            'object.timezone_type' => 3,
+                            'object.timezone' => 'Europe/Berlin',
+                            'array.bool' => 1,
+                            'array.int' => 3,
+                            'array.float' => 3.14,
+                            'array.string' => 'World',
+                            'array.object.date' => '2000-01-01 13:37:00.000000',
+                            'array.object.timezone_type' => 3,
+                            'array.object.timezone' => 'Europe/Berlin',
+                            'array.array.0' => 'again',
+                        ],
+                    ],
+                    'Feuil1' => [
+                        [
+                            'bool' => 0,
+                            'int' => 1,
+                            'float' => 1.618,
+                            'string' => 'Hello',
+                            'object.date' => '2000-01-01 13:37:00.000000',
+                            'object.timezone_type' => 3,
+                            'object.timezone' => 'Europe/Berlin',
+                            'array.bool' => 1,
+                            'array.int' => 3,
+                            'array.float' => 3.14,
+                            'array.string' => 'World',
+                            'array.object.date' => '2000-01-01 13:37:00.000000',
+                            'array.object.timezone_type' => 3,
+                            'array.object.timezone' => 'Europe/Berlin',
+                            'array.array.0' => 'again',
+                        ],
                     ],
                 ],
-            ]],
-            [__DIR__.'/Resources/encoded.xlsx', ExcelEncoder::XLSX, [
-                'Sheet_0' => [
-                    [
-                        'bool' => 0,
-                        'int' => 1,
-                        'float' => 1.618,
-                        'string' => 'Hello',
-                        'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
-                        'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
-                        'array.string' => 'World',
-                        'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
-                        'array.object.timezone' => 'Europe/Berlin',
-                        'array.array.0' => 'again',
-                    ],
-                ],
-                'Feuil1' => [
-                    [
-                        'bool' => 0,
-                        'int' => 1,
-                        'float' => 1.618,
-                        'string' => 'Hello',
-                        'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
-                        'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
-                        'array.string' => 'World',
-                        'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
-                        'array.object.timezone' => 'Europe/Berlin',
-                        'array.array.0' => 'again',
-                    ],
-                ],
-            ]],
+            ],
         ];
     }
 
@@ -141,7 +149,7 @@ final class ExcelEncoderTest extends TestCase
      */
     public function testDecode(string $file, string $format, array $result): void
     {
-        static::assertSame($result, $this->encoder->decode((string) file_get_contents($file), $format));
+        static::assertSame($result, $this->encoder->decode((string)file_get_contents($file), $format));
     }
 
     /**
