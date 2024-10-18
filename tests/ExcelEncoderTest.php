@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 /*
- * This file is part of package ang3/php-excel-encoder
+ * This file is part of package assoconnect/php-excel-encoder
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace Ang3\Component\Serializer\Encoder\Tests;
+namespace AssoConnect\Serializer\Encoder\Tests;
 
-use Ang3\Component\Serializer\Encoder\ExcelEncoder;
+use AssoConnect\Serializer\Encoder\ExcelEncoder;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  *
- * @covers \Ang3\Component\Serializer\Encoder\ExcelEncoder
+ * @covers \AssoConnect\Serializer\Encoder\ExcelEncoder
  */
 final class ExcelEncoderTest extends TestCase
 {
