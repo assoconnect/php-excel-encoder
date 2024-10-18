@@ -115,100 +115,99 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         };
 
         $sheetIndex = 0;
-
         foreach ($data as $sheetName => $sheetData) {
-            if (!is_iterable($sheetData)) {
+            $this->processSheetData($sheetName, $sheetData, $spreadsheet, $context, $sheetIndex++);
+        }
+
+        return $this->writeToFile($spreadsheet, $writer, $format);
+    }
+
+    private function processSheetData(
+        string $sheetName,
+        iterable $sheetData,
+        Spreadsheet $spreadsheet,
+        array $context,
+        int $sheetIndex
+    ): void {
+        if (!is_iterable($sheetData)) {
+            throw new NotEncodableValueException(
+                sprintf('Expected data of sheet #%d of type "iterable", "%s" given', $sheetIndex, \gettype($sheetData))
+            );
+        }
+
+        if ($sheetIndex > 0) {
+            $spreadsheet->createSheet($sheetIndex);
+        }
+
+        $spreadsheet->setActiveSheetIndex($sheetIndex);
+        $worksheet = $spreadsheet->getActiveSheet();
+        $worksheet->setTitle($sheetName);
+        $sheetData = (array) $sheetData;
+
+        foreach ($sheetData as $rowIndex => $cells) {
+            if (!is_iterable($cells)) {
                 throw new NotEncodableValueException(
                     sprintf(
-                        'Expected data of sheet #%d of type "iterable", "%s" given',
-                        $sheetName,
-                        \gettype($sheetData)
+                        'Expected cells of type "iterable" for data sheet #%d at row #%d, "%s" given',
+                        $sheetIndex,
+                        $rowIndex,
+                        \gettype($cells)
                     )
                 );
             }
-
-            if ($sheetIndex > 0) {
-                $spreadsheet->createSheet($sheetIndex);
-            }
-
-            $spreadsheet->setActiveSheetIndex($sheetIndex);
-            $worksheet = $spreadsheet->getActiveSheet();
-            $worksheet->setTitle($sheetName);
-            $sheetData = (array) $sheetData;
-
-            foreach ($sheetData as $rowIndex => $cells) {
-                if (!is_iterable($cells)) {
-                    throw new NotEncodableValueException(
-                        sprintf(
-                            'Expected cells of type "iterable" for data sheet #%d at row #%d, "%s" given',
-                            $sheetIndex,
-                            $rowIndex,
-                            \gettype($cells)
-                        )
-                    );
-                }
-
-                $flattened = [];
-                $this->flatten($cells, $flattened, $context[self::FLATTENED_HEADERS_SEPARATOR_KEY]);
-                $sheetData[$rowIndex] = $flattened;
-            }
-
-            $headers = [];
-
-            foreach ($sheetData as $cells) {
-                $headers = array_keys($cells);
-
-                break;
-            }
-
-            array_unshift($sheetData, $headers);
-            $worksheet->fromArray($sheetData, null, 'A1', true);
-            $headerLineStyle = $worksheet->getStyle('A1:' . $worksheet->getHighestDataColumn() . '1');
-
-            if ($context[self::HEADERS_HORIZONTAL_ALIGNMENT_KEY]) {
-                $alignment = match ($context[self::HEADERS_HORIZONTAL_ALIGNMENT_KEY]) {
-                    'left' => Alignment::HORIZONTAL_LEFT,
-                    'center' => Alignment::HORIZONTAL_CENTER,
-                    'right' => Alignment::HORIZONTAL_RIGHT,
-                    default => throw new InvalidArgumentException(
-                        sprintf(
-                            'The value of context key "%s" is not valid (possible values: "left", "center" or "right")',
-                            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY
-                        )
-                    ),
-                };
-
-                $headerLineStyle
-                    ->getAlignment()
-                    ->setHorizontal($alignment);
-            }
-
-            if (true === $context[self::HEADERS_IN_BOLD_KEY]) {
-                $headerLineStyle
-                    ->getFont()
-                    ->setBold(true);
-            }
-
-            for ($i = 1; $i <= Coordinate::columnIndexFromString($worksheet->getHighestDataColumn()); ++$i) {
-                $worksheet
-                    ->getColumnDimensionByColumn($i)
-                    ->setAutoSize($context[self::COLUMNS_AUTOSIZE_KEY]);
-            }
-
-            $worksheet->calculateColumnWidths();
-
-            foreach ($worksheet->getColumnDimensions() as $columnDimension) {
-                $colWidth = $columnDimension->getWidth();
-
-                if ($colWidth > $context[self::COLUMNS_MAXSIZE_KEY]) {
-                    $columnDimension->setAutoSize(false);
-                    $columnDimension->setWidth($context[self::COLUMNS_MAXSIZE_KEY]);
-                }
-            }
-
-            ++$sheetIndex;
+            $flattened = [];
+            $this->flatten($cells, $flattened, $context[self::FLATTENED_HEADERS_SEPARATOR_KEY]);
+            $sheetData[$rowIndex] = $flattened;
         }
 
+        $headers = [];
+        foreach ($sheetData as $cells) {
+            $headers = array_keys($cells);
+            break;
+        }
+        array_unshift($sheetData, $headers);
+        $worksheet->fromArray($sheetData, null, 'A1', true);
+
+        $this->applyHeaderStyles($worksheet, $context);
+    }
+
+    private function applyHeaderStyles($worksheet, array $context): void
+    {
+        $headerLineStyle = $worksheet->getStyle('A1:' . $worksheet->getHighestDataColumn() . '1');
+        if ($context[self::HEADERS_HORIZONTAL_ALIGNMENT_KEY]) {
+            $alignment = match ($context[self::HEADERS_HORIZONTAL_ALIGNMENT_KEY]) {
+                'left' => Alignment::HORIZONTAL_LEFT,
+                'center' => Alignment::HORIZONTAL_CENTER,
+                'right' => Alignment::HORIZONTAL_RIGHT,
+                default => throw new InvalidArgumentException(
+                    sprintf(
+                        'The value of context key "%s" is not valid (possible values: "left", "center" or "right")',
+                        self::HEADERS_HORIZONTAL_ALIGNMENT_KEY
+                    )
+                ),
+            };
+            $headerLineStyle->getAlignment()->setHorizontal($alignment);
+        }
+
+        if (true === $context[self::HEADERS_IN_BOLD_KEY]) {
+            $headerLineStyle->getFont()->setBold(true);
+        }
+
+        for ($i = 1; $i <= Coordinate::columnIndexFromString($worksheet->getHighestDataColumn()); ++$i) {
+            $worksheet->getColumnDimensionByColumn($i)->setAutoSize($context[self::COLUMNS_AUTOSIZE_KEY]);
+        }
+        $worksheet->calculateColumnWidths();
+
+        foreach ($worksheet->getColumnDimensions() as $columnDimension) {
+            if ($columnDimension->getWidth() > $context[self::COLUMNS_MAXSIZE_KEY]) {
+                $columnDimension->setAutoSize(false);
+                $columnDimension->setWidth($context[self::COLUMNS_MAXSIZE_KEY]);
+            }
+        }
+    }
+
+    private function writeToFile(Spreadsheet $spreadsheet, $writer, string $format): string
+    {
         try {
             $tmpFile = $this->filesystem->tempnam(sys_get_temp_dir(), $format);
             $writer->save($tmpFile);
@@ -217,7 +216,6 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Excel encoding failed - %s', $e->getMessage()), 0, $e);
         }
-
         return $content;
     }
 
@@ -239,12 +237,8 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
      * @throws RuntimeException           When data reading failed
      * @throws PhpSpreadsheetException    On data failure
      */
-    public function decode(string $data, string $format, array $context = []): mixed
+    private function loadSpreadsheet(string $tmpFile, string $format): Spreadsheet
     {
-        $context = $this->normalizeContext($context);
-        $tmpFile = (string) tempnam(sys_get_temp_dir(), $format);
-        $this->filesystem->dumpFile($tmpFile, $data);
-
         $reader = match ($format) {
             self::XLSX => new Readers\Xlsx(),
             self::XLS => new Readers\Xls(),
@@ -252,66 +246,66 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         };
 
         try {
-            $spreadsheet = $reader->load($tmpFile);
-            $this->filesystem->remove($tmpFile);
+            return $reader->load($tmpFile);
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Excel decoding failed - %s', $e->getMessage()), 0, $e);
+        } finally {
+            $this->filesystem->remove($tmpFile);
         }
+    }
 
+    private function transformSheetData(array $sheetData, array $context): array
+    {
+        $labelledRows = [];
+        $headers = null;
+        foreach ($sheetData as $rowIndex => $cells) {
+            $rowIndex = (int) $rowIndex;
+            if (null === $headers) {
+                $headers = [];
+                foreach ($cells as $key => $value) {
+                    if (null === $value || '' === $value) {
+                        continue;
+                    }
+                    $headers[$key] = $value;
+                    unset($sheetData[$rowIndex][$key]);
+                }
+                continue;
+            }
+            foreach ($cells as $key => $value) {
+                if (\array_key_exists($key, $headers)) {
+                    $labelledRows[$rowIndex - 1][(string) $headers[$key]] = $value;
+                } else {
+                    $labelledRows[$rowIndex - 1][''][$key] = $value;
+                }
+                unset($sheetData[$rowIndex][$key]);
+            }
+            unset($sheetData[$rowIndex]);
+        }
+        return $labelledRows;
+    }
+
+    public function decode(string $data, string $format, array $context = []): mixed
+    {
+        $context = $this->normalizeContext($context);
+        $tmpFile = (string) tempnam(sys_get_temp_dir(), $format);
+        $this->filesystem->dumpFile($tmpFile, $data);
+
+        $spreadsheet = $this->loadSpreadsheet($tmpFile, $format);
         $loadedSheetNames = $spreadsheet->getSheetNames();
-        $data = [];
 
+        $data = [];
         foreach ($loadedSheetNames as $sheetIndex => $loadedSheetName) {
             $worksheet = $spreadsheet->getSheet($sheetIndex);
             $sheetData = $worksheet->toArray();
-
             if (0 === \count($sheetData)) {
                 continue;
             }
-
-            if (false === $context[self::AS_COLLECTION_KEY]) {
+            if (!$context[self::AS_COLLECTION_KEY]) {
                 $data[$loadedSheetName] = $sheetData;
-
-                continue;
+            } else {
+                $data[$loadedSheetName] = $this->transformSheetData($sheetData, $context);
             }
-
-            $labelledRows = [];
-            $headers = null;
-
-            foreach ($sheetData as $rowIndex => $cells) {
-                $rowIndex = (int) $rowIndex;
-
-                if (null === $headers) {
-                    $headers = [];
-
-                    foreach ($cells as $key => $value) {
-                        if (null === $value || '' === $value) {
-                            continue;
-                        }
-
-                        $headers[$key] = $value;
-                        unset($sheetData[$rowIndex][$key]);
-                    }
-
-                    continue;
-                }
-
-                foreach ($cells as $key => $value) {
-                    if (\array_key_exists($key, $headers)) {
-                        $labelledRows[$rowIndex - 1][(string) $headers[$key]] = $value;
-                    } else {
-                        $labelledRows[$rowIndex - 1][''][$key] = $value;
-                    }
-
-                    unset($sheetData[$rowIndex][$key]);
-                }
-
-                unset($sheetData[$rowIndex]);
-            }
-
-            $data[$loadedSheetName] = $labelledRows;
         }
-
         return $data;
     }
 
