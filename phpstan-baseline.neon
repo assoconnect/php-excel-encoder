@@ -6,11 +6,6 @@ parameters:
 			path: src/ExcelEncoder.php
 
 		-
-			message: "#^Cannot assign float to \\$colWidth \\- floats are not allowed\\.$#"
-			count: 1
-			path: src/ExcelEncoder.php
-
-		-
 			message: "#^Cannot assign float\\|int\\|string to \\$result\\[sprintf\\('\\=\"%%s\"', \\$newKey\\)\\] \\- floats are not allowed\\.$#"
 			count: 1
 			path: src/ExcelEncoder.php
@@ -22,6 +17,11 @@ parameters:
 
 		-
 			message: "#^Method AssoConnect\\\\Serializer\\\\Encoder\\\\ExcelEncoder\\:\\:getContextValue\\(\\) cannot have bool\\|float\\|int\\|string\\|null as its return type \\- floats are not allowed\\.$#"
+			count: 1
+			path: src/ExcelEncoder.php
+
+		-
+			message: "#^Only booleans are allowed in an if condition, mixed given\\.$#"
 			count: 1
 			path: src/ExcelEncoder.php
 
