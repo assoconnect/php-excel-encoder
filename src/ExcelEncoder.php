@@ -16,7 +16,9 @@ use PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
 use PhpOffice\PhpSpreadsheet\Reader as Readers;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer as Writers;
+use PhpOffice\PhpSpreadsheet\Writer\BaseWriter;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
@@ -122,6 +124,10 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         return $this->writeToFile($spreadsheet, $writer, $format);
     }
 
+    /**
+     * @param iterable<mixed> $sheetData
+     * @param mixed[] $context
+     */
     private function processSheetData(
         string $sheetName,
         iterable $sheetData,
@@ -129,12 +135,6 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         array $context,
         int $sheetIndex
     ): void {
-        if (!is_iterable($sheetData)) {
-            throw new NotEncodableValueException(
-                sprintf('Expected data of sheet #%d of type "iterable", "%s" given', $sheetIndex, \gettype($sheetData))
-            );
-        }
-
         if ($sheetIndex > 0) {
             $spreadsheet->createSheet($sheetIndex);
         }
@@ -171,7 +171,10 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         $this->applyHeaderStyles($worksheet, $context);
     }
 
-    private function applyHeaderStyles($worksheet, array $context): void
+    /**
+     * @param mixed[] $context
+     */
+    private function applyHeaderStyles(Worksheet $worksheet, array $context): void
     {
         $headerLineStyle = $worksheet->getStyle('A1:' . $worksheet->getHighestDataColumn() . '1');
         if ($context[self::HEADERS_HORIZONTAL_ALIGNMENT_KEY]) {
@@ -206,7 +209,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         }
     }
 
-    private function writeToFile(Spreadsheet $spreadsheet, $writer, string $format): string
+    private function writeToFile(Spreadsheet $spreadsheet, BaseWriter $writer, string $format): string
     {
         try {
             $tmpFile = $this->filesystem->tempnam(sys_get_temp_dir(), $format);
@@ -228,10 +231,6 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
-     * {@inheritdoc}.
-     *
-     * @param mixed[] $context
-     *
      * @throws NotEncodableValueException When data are not valid
      * @throws InvalidArgumentException   When the format or data not supported
      * @throws RuntimeException           When data reading failed
@@ -254,6 +253,11 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         }
     }
 
+    /**
+     * @param mixed[] $sheetData
+     * @param mixed[] $context
+     * @return mixed[]
+     */
     private function transformSheetData(array $sheetData, array $context): array
     {
         $labelledRows = [];
@@ -284,6 +288,9 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         return $labelledRows;
     }
 
+    /**
+     * @param mixed[] $context
+     */
     public function decode(string $data, string $format, array $context = []): mixed
     {
         $context = $this->normalizeContext($context);
