@@ -9,7 +9,7 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace Ang3\Component\Serializer\Encoder;
+namespace AssoConnect\Serializer\Encoder;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
@@ -47,14 +47,18 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     public const COLUMNS_AUTOSIZE_KEY = 'columns_autosize';
     public const COLUMNS_MAXSIZE_KEY = 'columns_maxsize';
 
+
     /**
-     * @static
+     * @var string[]
      */
     private static array $formats = [
         self::XLS,
         self::XLSX,
     ];
 
+    /**
+     * @var array<string, mixed>
+     */
     private array $defaultContext = [
         self::AS_COLLECTION_KEY => true,
         self::FLATTENED_HEADERS_SEPARATOR_KEY => '.',
@@ -66,6 +70,9 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
 
     private Filesystem $filesystem;
 
+    /**
+     * @param mixed[] $defaultContext
+     */
     public function __construct(array $defaultContext = [])
     {
         $this->defaultContext = array_merge($this->defaultContext, $defaultContext);
@@ -123,7 +130,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $spreadsheet->setActiveSheetIndex($sheetIndex);
             $worksheet = $spreadsheet->getActiveSheet();
             $worksheet->setTitle($sheetName);
-            $sheetData = (array) $sheetData;
+            $sheetData = (array)$sheetData;
 
             foreach ($sheetData as $rowIndex => $cells) {
                 if (!is_iterable($cells)) {
@@ -201,7 +208,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         try {
             $tmpFile = $this->filesystem->tempnam(sys_get_temp_dir(), $format);
             $writer->save($tmpFile);
-            $content = (string) file_get_contents($tmpFile);
+            $content = (string)file_get_contents($tmpFile);
             $this->filesystem->remove($tmpFile);
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Excel encoding failed - %s', $e->getMessage()), 0, $e);
@@ -226,30 +233,21 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
      * @throws RuntimeException           When data reading failed
      * @throws PhpSpreadsheetException    On data failure
      */
-    public function decode($data, $format, array $context = [])
+    public function decode($data, $format, array $context = []): mixed
     {
         if (!\is_scalar($data)) {
             throw new NotEncodableValueException(sprintf('Expected data of type scalar, %s given', \gettype($data)));
         }
 
         $context = $this->normalizeContext($context);
-        $tmpFile = (string) tempnam(sys_get_temp_dir(), $format);
+        $tmpFile = (string)tempnam(sys_get_temp_dir(), $format);
         $this->filesystem->dumpFile($tmpFile, $data);
 
-        switch ($format) {
-            // Excel 2007
-            case self::XLSX:
-                $reader = new Readers\Xlsx();
-                break;
-
-            // Excel 2003
-            case self::XLS:
-                $reader = new Readers\Xls();
-                break;
-
-            default:
-                throw new InvalidArgumentException(sprintf('The format "%s" is not supported', $format));
-        }
+        $reader = match ($format) {
+            self::XLSX => new Readers\Xlsx(),
+            self::XLS => new Readers\Xls(),
+            default => throw new InvalidArgumentException(sprintf('The format "%s" is not supported', $format)),
+        };
 
         try {
             $spreadsheet = $reader->load($tmpFile);
@@ -279,7 +277,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $headers = null;
 
             foreach ($sheetData as $rowIndex => $cells) {
-                $rowIndex = (int) $rowIndex;
+                $rowIndex = (int)$rowIndex;
 
                 if (null === $headers) {
                     $headers = [];
@@ -298,7 +296,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
 
                 foreach ($cells as $key => $value) {
                     if (\array_key_exists($key, $headers)) {
-                        $labelledRows[$rowIndex - 1][(string) $headers[$key]] = $value;
+                        $labelledRows[$rowIndex - 1][(string)$headers[$key]] = $value;
                     } else {
                         $labelledRows[$rowIndex - 1][''][$key] = $value;
                     }
@@ -346,28 +344,33 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
+     * @param mixed[] $context
+     * @return mixed[]
      * @internal
+     *
      */
     private function normalizeContext(array $context = []): array
     {
         return [
-            self::AS_COLLECTION_KEY => (bool) $this->getContextValue($context, self::AS_COLLECTION_KEY),
-            self::FLATTENED_HEADERS_SEPARATOR_KEY => (string) $this->getContextValue(
+            self::AS_COLLECTION_KEY => (bool)$this->getContextValue($context, self::AS_COLLECTION_KEY),
+            self::FLATTENED_HEADERS_SEPARATOR_KEY => (string)$this->getContextValue(
                 $context,
                 self::FLATTENED_HEADERS_SEPARATOR_KEY
             ),
-            self::HEADERS_IN_BOLD_KEY => (bool) $this->getContextValue($context, self::HEADERS_IN_BOLD_KEY),
-            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => (string) $this->getContextValue(
+            self::HEADERS_IN_BOLD_KEY => (bool)$this->getContextValue($context, self::HEADERS_IN_BOLD_KEY),
+            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => (string)$this->getContextValue(
                 $context,
                 self::HEADERS_HORIZONTAL_ALIGNMENT_KEY
             ),
-            self::COLUMNS_AUTOSIZE_KEY => (bool) $this->getContextValue($context, self::COLUMNS_AUTOSIZE_KEY),
-            self::COLUMNS_MAXSIZE_KEY => (int) $this->getContextValue($context, self::COLUMNS_MAXSIZE_KEY),
+            self::COLUMNS_AUTOSIZE_KEY => (bool)$this->getContextValue($context, self::COLUMNS_AUTOSIZE_KEY),
+            self::COLUMNS_MAXSIZE_KEY => (int)$this->getContextValue($context, self::COLUMNS_MAXSIZE_KEY),
         ];
     }
 
     /**
+     * @param mixed[] $context
      * @internal
+     *
      */
     private function getContextValue(array $context, int|string $key): bool|int|float|string|null
     {

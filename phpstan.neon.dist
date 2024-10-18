@@ -1,7 +1,0 @@
-parameters:
-    paths:
-        - src/
-        - tests/
-
-includes:
-    - vendor/assoconnect/php-quality-config/phpstan.extension.neon
