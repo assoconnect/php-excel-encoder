@@ -327,6 +327,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
 
     /**
      * @param mixed[] $context
+     * @return mixed[]
      */
     public function decode(string $data, string $format, array $context = []): array
     {
@@ -344,11 +345,10 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             if (0 === \count($sheetData)) {
                 continue;
             }
-            if (!$context[self::AS_COLLECTION_KEY]) {
-                $data[$loadedSheetName] = $sheetData;
-            } else {
-                $data[$loadedSheetName] = $this->transformSheetData($sheetData);
-            }
+
+            $data[$loadedSheetName] = !$context[self::AS_COLLECTION_KEY] ?
+                $sheetData :
+                $this->transformSheetData($sheetData);
         }
         return $data;
     }
