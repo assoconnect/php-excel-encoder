@@ -59,14 +59,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     /**
      * @var array<string, mixed>
      */
-    private array $defaultContext = [
-        self::AS_COLLECTION_KEY => true,
-        self::FLATTENED_HEADERS_SEPARATOR_KEY => '.',
-        self::HEADERS_IN_BOLD_KEY => true,
-        self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => 'center',
-        self::COLUMNS_AUTOSIZE_KEY => true,
-        self::COLUMNS_MAXSIZE_KEY => 50,
-    ];
+    private array $defaultContext;
 
     private Filesystem $filesystem;
 
@@ -75,14 +68,23 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
      */
     public function __construct(array $defaultContext = [])
     {
-        $this->defaultContext = array_merge($this->defaultContext, $defaultContext);
+        $baseDefaultContext = [
+            self::AS_COLLECTION_KEY => true,
+            self::FLATTENED_HEADERS_SEPARATOR_KEY => '.',
+            self::HEADERS_IN_BOLD_KEY => true,
+            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => 'center',
+            self::COLUMNS_AUTOSIZE_KEY => true,
+            self::COLUMNS_MAXSIZE_KEY => 50,
+        ];
+
+        $this->defaultContext = array_merge($baseDefaultContext, $defaultContext);
         $this->filesystem = new Filesystem();
     }
 
     /**
      * {@inheritdoc}.
      */
-    public function supportsEncoding($format): bool
+    public function supportsEncoding(string $format): bool
     {
         return \in_array($format, self::$formats, true);
     }
@@ -90,12 +92,14 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}.
      *
+     * @param mixed[] $context
+     *
      * @throws InvalidArgumentException   When the format is not supported
      * @throws NotEncodableValueException When data are not valid
      * @throws RuntimeException           When data writing failed
      * @throws PhpSpreadsheetException    On data failure
      */
-    public function encode($data, $format, array $context = []): string
+    public function encode(mixed $data, string $format, array $context = []): string
     {
         if (!is_iterable($data)) {
             throw new NotEncodableValueException(sprintf('Expected data of type iterable, %s given', \gettype($data)));
@@ -130,7 +134,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $spreadsheet->setActiveSheetIndex($sheetIndex);
             $worksheet = $spreadsheet->getActiveSheet();
             $worksheet->setTitle($sheetName);
-            $sheetData = (array)$sheetData;
+            $sheetData = (array) $sheetData;
 
             foreach ($sheetData as $rowIndex => $cells) {
                 if (!is_iterable($cells)) {
@@ -208,7 +212,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         try {
             $tmpFile = $this->filesystem->tempnam(sys_get_temp_dir(), $format);
             $writer->save($tmpFile);
-            $content = (string)file_get_contents($tmpFile);
+            $content = (string) file_get_contents($tmpFile);
             $this->filesystem->remove($tmpFile);
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Excel encoding failed - %s', $e->getMessage()), 0, $e);
@@ -220,7 +224,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}.
      */
-    public function supportsDecoding($format): bool
+    public function supportsDecoding(string $format): bool
     {
         return \in_array($format, self::$formats, true);
     }
@@ -228,19 +232,17 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}.
      *
+     * @param mixed[] $context
+     *
      * @throws NotEncodableValueException When data are not valid
      * @throws InvalidArgumentException   When the format or data not supported
      * @throws RuntimeException           When data reading failed
      * @throws PhpSpreadsheetException    On data failure
      */
-    public function decode($data, $format, array $context = []): mixed
+    public function decode(string $data, string $format, array $context = []): mixed
     {
-        if (!\is_scalar($data)) {
-            throw new NotEncodableValueException(sprintf('Expected data of type scalar, %s given', \gettype($data)));
-        }
-
         $context = $this->normalizeContext($context);
-        $tmpFile = (string)tempnam(sys_get_temp_dir(), $format);
+        $tmpFile = (string) tempnam(sys_get_temp_dir(), $format);
         $this->filesystem->dumpFile($tmpFile, $data);
 
         $reader = match ($format) {
@@ -277,7 +279,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $headers = null;
 
             foreach ($sheetData as $rowIndex => $cells) {
-                $rowIndex = (int)$rowIndex;
+                $rowIndex = (int) $rowIndex;
 
                 if (null === $headers) {
                     $headers = [];
@@ -296,7 +298,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
 
                 foreach ($cells as $key => $value) {
                     if (\array_key_exists($key, $headers)) {
-                        $labelledRows[$rowIndex - 1][(string)$headers[$key]] = $value;
+                        $labelledRows[$rowIndex - 1][(string) $headers[$key]] = $value;
                     } else {
                         $labelledRows[$rowIndex - 1][''][$key] = $value;
                     }
@@ -314,6 +316,9 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
+     * @param array<string, mixed> $result
+     * @param iterable<mixed, mixed> $data
+     *
      * @throws NotNormalizableValueException when a value is not valid
      * @internal
      *
@@ -352,18 +357,18 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     private function normalizeContext(array $context = []): array
     {
         return [
-            self::AS_COLLECTION_KEY => (bool)$this->getContextValue($context, self::AS_COLLECTION_KEY),
-            self::FLATTENED_HEADERS_SEPARATOR_KEY => (string)$this->getContextValue(
+            self::AS_COLLECTION_KEY => (bool) $this->getContextValue($context, self::AS_COLLECTION_KEY),
+            self::FLATTENED_HEADERS_SEPARATOR_KEY => (string) $this->getContextValue(
                 $context,
                 self::FLATTENED_HEADERS_SEPARATOR_KEY
             ),
-            self::HEADERS_IN_BOLD_KEY => (bool)$this->getContextValue($context, self::HEADERS_IN_BOLD_KEY),
-            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => (string)$this->getContextValue(
+            self::HEADERS_IN_BOLD_KEY => (bool) $this->getContextValue($context, self::HEADERS_IN_BOLD_KEY),
+            self::HEADERS_HORIZONTAL_ALIGNMENT_KEY => (string) $this->getContextValue(
                 $context,
                 self::HEADERS_HORIZONTAL_ALIGNMENT_KEY
             ),
-            self::COLUMNS_AUTOSIZE_KEY => (bool)$this->getContextValue($context, self::COLUMNS_AUTOSIZE_KEY),
-            self::COLUMNS_MAXSIZE_KEY => (int)$this->getContextValue($context, self::COLUMNS_MAXSIZE_KEY),
+            self::COLUMNS_AUTOSIZE_KEY => (bool) $this->getContextValue($context, self::COLUMNS_AUTOSIZE_KEY),
+            self::COLUMNS_MAXSIZE_KEY => (int) $this->getContextValue($context, self::COLUMNS_MAXSIZE_KEY),
         ];
     }
 
