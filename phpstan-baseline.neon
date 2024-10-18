@@ -1,11 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Array key must be integer or string, but mixed given\\.$#"
-			count: 4
-			path: src/ExcelEncoder.php
-
-		-
 			message: "#^Cannot assign float\\|int\\|string to \\$result\\[sprintf\\('\\=\"%%s\"', \\$newKey\\)\\] \\- floats are not allowed\\.$#"
 			count: 1
 			path: src/ExcelEncoder.php

@@ -125,8 +125,12 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
+     * @param string $sheetName
      * @param iterable<mixed> $sheetData
+     * @param Spreadsheet $spreadsheet
      * @param mixed[] $context
+     * @param int $sheetIndex
+     * @return void
      */
     private function processSheetData(
         string $sheetName,
@@ -209,6 +213,12 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
         }
     }
 
+    /**
+     * @param Spreadsheet $spreadsheet
+     * @param $writer
+     * @param string $format
+     * @return string
+     */
     private function writeToFile(Spreadsheet $spreadsheet, BaseWriter $writer, string $format): string
     {
         try {
@@ -254,44 +264,71 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
-     * @param mixed[] $sheetData
-     * @param mixed[] $context
+     * @param mixed[] $data
      * @return mixed[]
      */
-    private function transformSheetData(array $sheetData, array $context): array
+    private function transformSheetData(array $data): array
     {
         $labelledRows = [];
         $headers = null;
-        foreach ($sheetData as $rowIndex => $cells) {
+
+        foreach ($data as $rowIndex => $cells) {
             $rowIndex = (int) $rowIndex;
-            if (null === $headers) {
-                $headers = [];
-                foreach ($cells as $key => $value) {
-                    if (null === $value || '' === $value) {
-                        continue;
-                    }
-                    $headers[$key] = $value;
-                    unset($sheetData[$rowIndex][$key]);
-                }
+            $isHeaderRow = ($headers === null);
+
+            if ($isHeaderRow) {
+                $headers = $this->processHeaders($cells);
                 continue;
             }
-            foreach ($cells as $key => $value) {
-                if (\array_key_exists($key, $headers)) {
-                    $labelledRows[$rowIndex - 1][(string) $headers[$key]] = $value;
-                } else {
-                    $labelledRows[$rowIndex - 1][''][$key] = $value;
-                }
-                unset($sheetData[$rowIndex][$key]);
-            }
-            unset($sheetData[$rowIndex]);
+
+            $labelledRows[$rowIndex - 1] = $this->processCells($headers, $cells);
         }
+
         return $labelledRows;
+    }
+
+    /**
+     * Process the header row
+     *
+     * @param mixed[] $cells
+     * @return mixed[]
+     */
+    private function processHeaders(array $cells): array
+    {
+        $headers = [];
+        foreach ($cells as $key => $value) {
+            if (null === $value || '' === $value) {
+                continue;
+            }
+            $headers[$key] = $value;
+        }
+        return $headers;
+    }
+
+    /**
+     * Process the data cells
+     *
+     * @param mixed[] $headers
+     * @param mixed[] $cells
+     * @return mixed[]
+     */
+    private function processCells(array $headers, array $cells): array
+    {
+        $labelledRow = [];
+        foreach ($cells as $key => $value) {
+            if (\array_key_exists($key, $headers)) {
+                $labelledRow[(string) $headers[$key]] = $value;
+            } else {
+                $labelledRow[''][$key] = $value;
+            }
+        }
+        return $labelledRow;
     }
 
     /**
      * @param mixed[] $context
      */
-    public function decode(string $data, string $format, array $context = []): mixed
+    public function decode(string $data, string $format, array $context = []): array
     {
         $context = $this->normalizeContext($context);
         $tmpFile = (string) tempnam(sys_get_temp_dir(), $format);
@@ -310,7 +347,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             if (!$context[self::AS_COLLECTION_KEY]) {
                 $data[$loadedSheetName] = $sheetData;
             } else {
-                $data[$loadedSheetName] = $this->transformSheetData($sheetData, $context);
+                $data[$loadedSheetName] = $this->transformSheetData($sheetData);
             }
         }
         return $data;
