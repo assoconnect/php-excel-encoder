@@ -39,7 +39,7 @@ final class ExcelEncoderTest extends TestCase
     public function testEncode(string $format): void
     {
         self::expectNotToPerformAssertions();
-        $contents = $this->encoder->encode($this->getInitialData(), $format);
+        $this->encoder->encode($this->getInitialData(), $format);
     }
 
     /**
