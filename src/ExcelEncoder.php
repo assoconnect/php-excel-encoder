@@ -121,7 +121,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $this->processSheetData($sheetName, $sheetData, $spreadsheet, $context, $sheetIndex++);
         }
 
-        return $this->writeToFile($spreadsheet, $writer, $format);
+        return $this->writeToFile($writer, $format);
     }
 
     /**
@@ -214,12 +214,10 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     }
 
     /**
-     * @param Spreadsheet $spreadsheet
-     * @param $writer
-     * @param string $format
+     * @param BaseWriter $writer
      * @return string
      */
-    private function writeToFile(Spreadsheet $spreadsheet, BaseWriter $writer, string $format): string
+    private function writeToFile(BaseWriter $writer, string $format): string
     {
         try {
             $tmpFile = $this->filesystem->tempnam(sys_get_temp_dir(), $format);
@@ -382,7 +380,11 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
                 );
             }
 
-            $result[sprintf('="%s"', $newKey)] = false === $value ? 0 : (true === $value ? 1 : $value);
+            $result[sprintf('="%s"', $newKey)] = match ($value) {
+                false => 0,
+                true => 1,
+                default => $value,
+            };
         }
     }
 
