@@ -28,6 +28,6 @@
     },
     "require-dev": {
 		"symfony/test-pack": "^1.0",
-		"rector/rector": "^2.2"
+        "assoconnect/php-quality-config": "^1.16"
 	}
 }
