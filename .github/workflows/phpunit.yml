@@ -9,13 +9,13 @@ jobs:
   tests_suite:
     strategy:
       matrix:
-        php_version: [ '8.1', '8.2' ]
+        php_version: [ '8.1', '8.4' ]
     runs-on: ubuntu-latest
     steps:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php_version }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache Composer packages
         id: composer-cache
         uses: actions/cache@v3
