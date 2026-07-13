@@ -91,7 +91,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     public function encode($data, $format, array $context = []): string
     {
         if (!is_iterable($data)) {
-            throw new NotEncodableValueException(sprintf('Expected data of type iterable, %s given', \gettype($data)));
+            throw new NotEncodableValueException(\sprintf('Expected data of type iterable, %s given', \gettype($data)));
         }
 
         $context = $this->normalizeContext($context);
@@ -109,14 +109,14 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
                 break;
 
             default:
-                throw new InvalidArgumentException(sprintf('The format "%s" is not supported', $format));
+                throw new InvalidArgumentException(\sprintf('The format "%s" is not supported', $format));
         }
 
         $sheetIndex = 0;
 
         foreach ($data as $sheetName => $sheetData) {
             if (!is_iterable($sheetData)) {
-                throw new NotEncodableValueException(sprintf('Expected data of sheet #%d of type "iterable", "%s" given', $sheetName, \gettype($sheetData)));
+                throw new NotEncodableValueException(\sprintf('Expected data of sheet #%d of type "iterable", "%s" given', $sheetName, \gettype($sheetData)));
             }
 
             if ($sheetIndex > 0) {
@@ -130,7 +130,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
 
             foreach ($sheetData as $rowIndex => $cells) {
                 if (!is_iterable($cells)) {
-                    throw new NotEncodableValueException(sprintf('Expected cells of type "iterable" for data sheet #%d at row #%d, "%s" given', $sheetIndex, $rowIndex, \gettype($cells)));
+                    throw new NotEncodableValueException(\sprintf('Expected cells of type "iterable" for data sheet #%d at row #%d, "%s" given', $sheetIndex, $rowIndex, \gettype($cells)));
                 }
 
                 $flattened = [];
@@ -162,7 +162,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
                         $alignment = Alignment::HORIZONTAL_RIGHT;
                         break;
                     default:
-                        throw new InvalidArgumentException(sprintf('The value of context key "%s" is not valid (possible values: "left", "center" or "right")', self::HEADERS_HORIZONTAL_ALIGNMENT_KEY));
+                        throw new InvalidArgumentException(\sprintf('The value of context key "%s" is not valid (possible values: "left", "center" or "right")', self::HEADERS_HORIZONTAL_ALIGNMENT_KEY));
                 }
 
                 $headerLineStyle
@@ -205,7 +205,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $content = (string) file_get_contents($tmpFile);
             $this->filesystem->remove($tmpFile);
         } catch (\Exception $e) {
-            throw new RuntimeException(sprintf('Excel encoding failed - %s', $e->getMessage()), 0, $e);
+            throw new RuntimeException(\sprintf('Excel encoding failed - %s', $e->getMessage()), 0, $e);
         }
 
         return $content;
@@ -230,7 +230,7 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
     public function decode($data, $format, array $context = []): mixed
     {
         if (!\is_scalar($data)) {
-            throw new NotEncodableValueException(sprintf('Expected data of type scalar, %s given', \gettype($data)));
+            throw new NotEncodableValueException(\sprintf('Expected data of type scalar, %s given', \gettype($data)));
         }
 
         $context = $this->normalizeContext($context);
@@ -249,14 +249,14 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
                 break;
 
             default:
-                throw new InvalidArgumentException(sprintf('The format "%s" is not supported', $format));
+                throw new InvalidArgumentException(\sprintf('The format "%s" is not supported', $format));
         }
 
         try {
             $spreadsheet = $reader->load($tmpFile);
             $this->filesystem->remove($tmpFile);
         } catch (\Exception $e) {
-            throw new RuntimeException(sprintf('Excel decoding failed - %s', $e->getMessage()), 0, $e);
+            throw new RuntimeException(\sprintf('Excel decoding failed - %s', $e->getMessage()), 0, $e);
         }
 
         $loadedSheetNames = $spreadsheet->getSheetNames();
@@ -337,10 +337,10 @@ class ExcelEncoder implements EncoderInterface, DecoderInterface
             $newKey = $parentKey.$key;
 
             if (!\is_scalar($value)) {
-                throw new NotNormalizableValueException(sprintf('Expected key "%s" of type object, array or scalar, %s given', $newKey, \gettype($value)));
+                throw new NotNormalizableValueException(\sprintf('Expected key "%s" of type object, array or scalar, %s given', $newKey, \gettype($value)));
             }
 
-            $result[sprintf('="%s"', $newKey)] = false === $value ? 0 : (true === $value ? 1 : $value);
+            $result[\sprintf('="%s"', $newKey)] = false === $value ? 0 : (true === $value ? 1 : $value);
         }
     }
 
