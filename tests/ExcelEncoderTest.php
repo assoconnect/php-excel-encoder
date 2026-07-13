@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Ang3\Component\Serializer\Encoder\Tests;
 
 use Ang3\Component\Serializer\Encoder\ExcelEncoder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -41,9 +42,7 @@ final class ExcelEncoderTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataEncodingProvider
-     */
+    #[DataProvider('dataEncodingProvider')]
     public function testEncode(string $format): void
     {
         $contents = $this->encoder->encode($this->getInitialData(), $format);
@@ -56,38 +55,38 @@ final class ExcelEncoderTest extends TestCase
             [__DIR__.'/Resources/encoded.xls', ExcelEncoder::XLS, [
                 'Sheet_0' => [
                     [
-                        'bool' => 0.0,
-                        'int' => 1,
-                        'float' => 1.618,
+                        'bool' => '0',
+                        'int' => '1',
+                        'float' => '1.618',
                         'string' => 'Hello',
                         'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
+                        'object.timezone_type' => '3',
                         'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
+                        'array.bool' => '1',
+                        'array.int' => '3',
+                        'array.float' => '3.14',
                         'array.string' => 'World',
                         'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
+                        'array.object.timezone_type' => '3',
                         'array.object.timezone' => 'Europe/Berlin',
                         'array.array.0' => 'again',
                     ],
                 ],
                 'Feuil1' => [
                     [
-                        'bool' => 0.0,
-                        'int' => 1,
-                        'float' => 1.618,
+                        'bool' => '0',
+                        'int' => '1',
+                        'float' => '1.618',
                         'string' => 'Hello',
                         'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
+                        'object.timezone_type' => '3',
                         'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
+                        'array.bool' => '1',
+                        'array.int' => '3',
+                        'array.float' => '3.14',
                         'array.string' => 'World',
                         'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
+                        'array.object.timezone_type' => '3',
                         'array.object.timezone' => 'Europe/Berlin',
                         'array.array.0' => 'again',
                     ],
@@ -96,38 +95,38 @@ final class ExcelEncoderTest extends TestCase
             [__DIR__.'/Resources/encoded.xlsx', ExcelEncoder::XLSX, [
                 'Sheet_0' => [
                     [
-                        'bool' => 0,
-                        'int' => 1,
-                        'float' => 1.618,
+                        'bool' => '0',
+                        'int' => '1',
+                        'float' => '1.618',
                         'string' => 'Hello',
                         'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
+                        'object.timezone_type' => '3',
                         'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
+                        'array.bool' => '1',
+                        'array.int' => '3',
+                        'array.float' => '3.14',
                         'array.string' => 'World',
                         'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
+                        'array.object.timezone_type' => '3',
                         'array.object.timezone' => 'Europe/Berlin',
                         'array.array.0' => 'again',
                     ],
                 ],
                 'Feuil1' => [
                     [
-                        'bool' => 0,
-                        'int' => 1,
-                        'float' => 1.618,
+                        'bool' => '0',
+                        'int' => '1',
+                        'float' => '1.618',
                         'string' => 'Hello',
                         'object.date' => '2000-01-01 13:37:00.000000',
-                        'object.timezone_type' => 3,
+                        'object.timezone_type' => '3',
                         'object.timezone' => 'Europe/Berlin',
-                        'array.bool' => 1,
-                        'array.int' => 3,
-                        'array.float' => 3.14,
+                        'array.bool' => '1',
+                        'array.int' => '3',
+                        'array.float' => '3.14',
                         'array.string' => 'World',
                         'array.object.date' => '2000-01-01 13:37:00.000000',
-                        'array.object.timezone_type' => 3,
+                        'array.object.timezone_type' => '3',
                         'array.object.timezone' => 'Europe/Berlin',
                         'array.array.0' => 'again',
                     ],
@@ -136,9 +135,7 @@ final class ExcelEncoderTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider dataDecodingProvider
-     */
+    #[DataProvider('dataDecodingProvider')]
     public function testDecode(string $file, string $format, array $result): void
     {
         static::assertSame($result, $this->encoder->decode((string) file_get_contents($file), $format));
@@ -153,8 +150,8 @@ final class ExcelEncoderTest extends TestCase
             'Sheet_0' => [
                 [
                     'bool' => false,
-                    'int' => 1,
-                    'float' => 1.618,
+                    'int' => '1',
+                    'float' => '1.618',
                     'string' => 'Hello',
                     'object' => new \DateTime('2000-01-01 13:37:00'),
                     'array' => [
@@ -172,8 +169,8 @@ final class ExcelEncoderTest extends TestCase
             'Feuil1' => [
                 [
                     'bool' => false,
-                    'int' => 1,
-                    'float' => 1.618,
+                    'int' => '1',
+                    'float' => '1.618',
                     'string' => 'Hello',
                     'object' => new \DateTime('2000-01-01 13:37:00'),
                     'array' => [
